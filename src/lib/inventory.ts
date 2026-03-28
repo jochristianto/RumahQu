@@ -1,4 +1,5 @@
-import { differenceInCalendarDays, parseISO, startOfDay } from "date-fns";
+import { differenceInCalendarDays, format, parseISO, startOfDay } from "date-fns";
+import { id as indonesianLocale } from "date-fns/locale";
 import type { InventoryItem } from "@/lib/contracts";
 
 function parseExpiryDate(value: string) {
@@ -26,6 +27,21 @@ export const getExpiringSoonItems = (items: InventoryItem[]) =>
   items
     .filter((item) => getExpiryStatus(item.expirationDate) === "expiring-soon")
     .sort((a, b) => parseExpiryDate(a.expirationDate).getTime() - parseExpiryDate(b.expirationDate).getTime());
+
+export const getLastInventoryUpdate = (items: InventoryItem[]) => {
+  if (items.length === 0) return null;
+
+  return items.reduce<string | null>((latest, item) => {
+    if (!latest) return item.updatedAt;
+    return new Date(item.updatedAt).getTime() > new Date(latest).getTime() ? item.updatedAt : latest;
+  }, null);
+};
+
+export const formatInventoryLastUpdate = (value: string | null) => {
+  if (!value) return "Belum ada data";
+
+  return format(parseISO(value), "dd MMM yyyy", { locale: indonesianLocale });
+};
 
 export const formatExpiryCountdown = (expirationDate: string) => {
   const days = getDaysUntilExpiry(expirationDate);

@@ -1,7 +1,13 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Package, ChevronDown, ChevronRight } from "lucide-react";
-import { CATEGORIES, getExpiryStatus, type InventoryItem } from "@/lib/inventory";
+import {
+  CATEGORIES,
+  formatInventoryLastUpdate,
+  getExpiryStatus,
+  getLastInventoryUpdate,
+  type InventoryItem,
+} from "@/lib/inventory";
 import { useGroup } from "@/contexts/GroupContext";
 import { useInventory } from "@/hooks/useInventory";
 import { ExpiringSoonAlert } from "@/components/ExpiringSoonAlert";
@@ -17,6 +23,7 @@ const Inventory = () => {
   const [openCategories, setOpenCategories] = useState<Set<string>>(() => new Set(CATEGORIES));
   const inventoryQuery = useInventory(activeGroup?.id);
   const currentItems = useMemo(() => inventoryQuery.data ?? [], [inventoryQuery.data]);
+  const lastUpdatedAt = useMemo(() => getLastInventoryUpdate(currentItems), [currentItems]);
 
   usePageMeta({
     title: "Inventory",
@@ -62,10 +69,17 @@ const Inventory = () => {
           </Button>
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
-            <h1 className="text-xl font-extrabold">Inventory</h1>
-            {activeGroup && (
-              <Badge variant="outline" className="text-xs">{activeGroup.name}</Badge>
-            )}
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-extrabold">Inventory</h1>
+                {activeGroup && (
+                  <Badge variant="outline" className="text-xs">{activeGroup.name}</Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Last update: {formatInventoryLastUpdate(lastUpdatedAt)}
+              </p>
+            </div>
           </div>
           <Badge variant="secondary" className="ml-auto font-bold">
             {currentItems.length} barang
