@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 33% 97%;
+    --foreground: 20 20% 16%;
+
+    --card: 36 30% 100%;
+    --card-foreground: 20 20% 16%;
+
+    --popover: 36 30% 100%;
+    --popover-foreground: 20 20% 16%;
+
+    --primary: 24 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 36 30% 92%;
+    --secondary-foreground: 20 20% 20%;
+
+    --muted: 36 20% 94%;
+    --muted-foreground: 20 10% 50%;
+
+    --accent: 24 80% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 20 20% 16%;
+
+    --success: 142 60% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --expired: 0 72% 51%;
+    --expiring-soon: 38 92% 50%;
+    --safe: 142 60% 40%;
+
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 24 80% 50%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 36 30% 98%;
+    --sidebar-foreground: 20 20% 16%;
+    --sidebar-primary: 24 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 36 30% 94%;
+    --sidebar-accent-foreground: 20 20% 20%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 24 80% 50%;
+  }
+
+  .dark {
+    --background: 20 20% 8%;
+    --foreground: 36 20% 92%;
+
+    --card: 20 18% 12%;
+    --card-foreground: 36 20% 92%;
+
+    --popover: 20 18% 12%;
+    --popover-foreground: 36 20% 92%;
+
+    --primary: 24 80% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 20 15% 18%;
+    --secondary-foreground: 36 20% 90%;
+
+    --muted: 20 15% 18%;
+    --muted-foreground: 36 10% 55%;
+
+    --accent: 24 80% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 20 15% 20%;
+    --input: 20 15% 20%;
+    --ring: 24 80% 55%;
+
+    --sidebar-background: 20 18% 10%;
+    --sidebar-foreground: 36 20% 92%;
+    --sidebar-primary: 24 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 15% 16%;
+    --sidebar-accent-foreground: 36 20% 90%;
+    --sidebar-border: 20 15% 20%;
+    --sidebar-ring: 24 80% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}

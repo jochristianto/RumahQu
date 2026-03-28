@@ -1,0 +1,63 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { GroupProvider } from "@/contexts/GroupContext";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
+import Inventory from "./pages/Inventory";
+import Groups from "./pages/Groups";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Memuat...</div>;
+  if (!user) return <Navigate to="/auth" replace />;
+  return <>{children}</>;
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Memuat...</div>;
+  }
+  if (user) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <GroupProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+              <Route path="/groups" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </GroupProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
+
+export default App;
