@@ -8,10 +8,10 @@ import { AddItemDialog } from "@/components/AddItemDialog";
 
 const navItems = [
   {
-    href: "/",
+    href: "/app",
     label: "Home",
     icon: Home,
-    isActive: (pathname: string) => pathname === "/",
+    isActive: (pathname: string) => pathname === "/app",
   },
   {
     href: "/inventory",

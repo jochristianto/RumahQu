@@ -56,7 +56,7 @@ const MealRecommendations = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto flex max-w-5xl items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/app")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">

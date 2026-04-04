@@ -83,7 +83,7 @@ const Groups = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container max-w-4xl mx-auto flex items-center gap-3 py-4 px-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/app")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">

@@ -11,6 +11,167 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
+function createDashboardFetch(groupId = "group-1") {
+  return async (input: string | URL | Request) => {
+    const url = typeof input === "string" ? input : input.toString();
+
+    if (url.endsWith("/api/auth/me")) {
+      return jsonResponse({
+        user: {
+          id: "user-1",
+          email: "alice@example.com",
+          fullName: "Alice Rumah",
+          avatarUrl: null,
+          createdAt: "2026-03-28T00:00:00.000Z",
+        },
+        csrfToken: "csrf-authenticated",
+      });
+    }
+
+    if (url.endsWith("/api/groups")) {
+      return jsonResponse({
+        groups: [
+          {
+            id: groupId,
+            name: "Rumah Alice",
+            role: "owner",
+            memberCount: 1,
+            createdBy: "user-1",
+            createdAt: "2026-03-28T00:00:00.000Z",
+          },
+        ],
+        pendingInvites: [],
+      });
+    }
+
+    if (url.endsWith(`/api/groups/${groupId}/members`)) {
+      return jsonResponse({
+        members: [
+          {
+            userId: "user-1",
+            email: "alice@example.com",
+            fullName: "Alice Rumah",
+            role: "owner",
+            joinedAt: "2026-03-28T00:00:00.000Z",
+          },
+        ],
+      });
+    }
+
+    if (url.includes(`/api/inventory?groupId=${groupId}`)) {
+      return jsonResponse({
+        items: [
+          {
+            id: "item-1",
+            groupId,
+            addedBy: "user-1",
+            addedByName: "Alice Rumah",
+            name: "Susu UHT",
+            category: "Minuman",
+            quantity: 2,
+            unit: "kotak",
+            expirationDate: "2026-04-05",
+            notes: null,
+            createdAt: "2026-03-28T00:00:00.000Z",
+            updatedAt: "2026-03-28T00:00:00.000Z",
+          },
+        ],
+      });
+    }
+
+    if (url.includes(`/api/shopping-list?groupId=${groupId}`)) {
+      return jsonResponse({
+        items: [
+          {
+            id: "shopping-1",
+            groupId,
+            createdBy: "user-1",
+            createdByName: "Alice Rumah",
+            purchasedBy: null,
+            purchasedByName: null,
+            name: "Telur",
+            category: "Makanan",
+            quantity: 2,
+            unit: "kg",
+            notes: "Untuk sarapan minggu depan",
+            isPurchased: false,
+            purchasedAt: null,
+            createdAt: "2026-03-28T00:00:00.000Z",
+            updatedAt: "2026-03-28T00:00:00.000Z",
+          },
+        ],
+      });
+    }
+
+    if (url.includes(`/api/meal-recommendations?groupId=${groupId}`)) {
+      return jsonResponse({
+        recommendations: [
+          {
+            recipeId: "indo-nasi-goreng-telur",
+            name: "Nasi Goreng Telur",
+            cuisine: "indonesia",
+            summary: "Nasi goreng rumahan yang cepat untuk sarapan atau makan malam.",
+            tags: ["sarapan", "goreng", "simple"],
+            bucket: "kurang-sedikit",
+            requiredCount: 3,
+            availableRequiredCount: 2,
+            matchedOptionalCount: 1,
+            expiringSoonCount: 0,
+            nearestExpiryInDays: 14,
+            urgencyReason: "Tinggal tambah Kecap Manis untuk melengkapi bahan utama.",
+            availableIngredients: [
+              {
+                ingredientId: "nasi",
+                label: "Beras",
+                matchedItemNames: ["Beras"],
+                isRequired: true,
+                isAvailable: true,
+                isExpiringSoon: false,
+                soonestExpiryDays: 30,
+              },
+              {
+                ingredientId: "telur",
+                label: "Telur Ayam",
+                matchedItemNames: ["Telur Ayam"],
+                isRequired: true,
+                isAvailable: true,
+                isExpiringSoon: false,
+                soonestExpiryDays: 14,
+              },
+            ],
+            missingIngredients: [
+              {
+                ingredientId: "kecap_manis",
+                label: "Kecap Manis",
+                matchedItemNames: [],
+                isRequired: true,
+                isAvailable: false,
+                isExpiringSoon: false,
+                soonestExpiryDays: null,
+              },
+            ],
+            optionalMatches: [
+              {
+                ingredientId: "daun_bawang",
+                label: "Daun Bawang",
+                matchedItemNames: ["Daun Bawang"],
+                isRequired: false,
+                isAvailable: true,
+                isExpiringSoon: false,
+                soonestExpiryDays: 7,
+              },
+            ],
+          },
+        ],
+        generatedAt: "2026-03-28T00:00:00.000Z",
+        totalCatalogRecipes: 200,
+      });
+    }
+
+    return jsonResponse({ error: { code: "NOT_FOUND", message: `Unhandled request: ${url}` } }, 404);
+  };
+}
+
 describe("app routes", () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -20,7 +181,7 @@ describe("app routes", () => {
     vi.restoreAllMocks();
   });
 
-  it("redirects unauthenticated users to the auth screen", async () => {
+  it("renders the marketing homepage for unauthenticated users", async () => {
     window.history.pushState({}, "", "/");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       jsonResponse({
@@ -31,8 +192,24 @@ describe("app routes", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("Kelola inventaris rumah tangga bersama keluarga")).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Daftar" })).toBeInTheDocument();
+    expect(await screen.findByText("Belanja lebih tepat, masak lebih tenang, dan hentikan bahan dapur terbuang sia-sia.")).toBeInTheDocument();
+    expect(screen.getByText("Masalah yang sering terjadi di rumah")).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Daftar Gratis" }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("tab", { name: "Daftar" })).not.toBeInTheDocument();
+  });
+
+  it("redirects unauthenticated users from /app to the auth screen", async () => {
+    window.history.pushState({}, "", "/app");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({
+        user: null,
+        csrfToken: "csrf-guest",
+      }),
+    );
+
+    render(<App />);
+
+    expect(await screen.findByRole("tab", { name: "Daftar" })).toBeInTheDocument();
   });
 
   it("renders the forgot password form when requested from the auth route", async () => {
@@ -50,167 +227,10 @@ describe("app routes", () => {
     expect(screen.getByRole("button", { name: "Kembali ke login" })).toBeInTheDocument();
   });
 
-  it("renders the dashboard for an authenticated user", async () => {
+  it("redirects authenticated users from / to /app and renders the dashboard", async () => {
     window.history.pushState({}, "", "/");
 
-    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
-      const url = typeof input === "string" ? input : input.toString();
-
-      if (url.endsWith("/api/auth/me")) {
-        return jsonResponse({
-          user: {
-            id: "user-1",
-            email: "alice@example.com",
-            fullName: "Alice Rumah",
-            avatarUrl: null,
-            createdAt: "2026-03-28T00:00:00.000Z",
-          },
-          csrfToken: "csrf-authenticated",
-        });
-      }
-
-      if (url.endsWith("/api/groups")) {
-        return jsonResponse({
-          groups: [
-            {
-              id: "group-1",
-              name: "Rumah Alice",
-              role: "owner",
-              memberCount: 1,
-              createdBy: "user-1",
-              createdAt: "2026-03-28T00:00:00.000Z",
-            },
-          ],
-          pendingInvites: [],
-        });
-      }
-
-      if (url.endsWith("/api/groups/group-1/members")) {
-        return jsonResponse({
-          members: [
-            {
-              userId: "user-1",
-              email: "alice@example.com",
-              fullName: "Alice Rumah",
-              role: "owner",
-              joinedAt: "2026-03-28T00:00:00.000Z",
-            },
-          ],
-        });
-      }
-
-      if (url.includes("/api/inventory?groupId=group-1")) {
-        return jsonResponse({
-          items: [
-            {
-              id: "item-1",
-              groupId: "group-1",
-              addedBy: "user-1",
-              addedByName: "Alice Rumah",
-              name: "Susu UHT",
-              category: "Minuman",
-              quantity: 2,
-              unit: "kotak",
-              expirationDate: "2026-04-05",
-              notes: null,
-              createdAt: "2026-03-28T00:00:00.000Z",
-              updatedAt: "2026-03-28T00:00:00.000Z",
-            },
-          ],
-        });
-      }
-
-      if (url.includes("/api/shopping-list?groupId=group-1")) {
-        return jsonResponse({
-          items: [
-            {
-              id: "shopping-1",
-              groupId: "group-1",
-              createdBy: "user-1",
-              createdByName: "Alice Rumah",
-              purchasedBy: null,
-              purchasedByName: null,
-              name: "Telur",
-              category: "Makanan",
-              quantity: 2,
-              unit: "kg",
-              notes: "Untuk sarapan minggu depan",
-              isPurchased: false,
-              purchasedAt: null,
-              createdAt: "2026-03-28T00:00:00.000Z",
-              updatedAt: "2026-03-28T00:00:00.000Z",
-            },
-          ],
-        });
-      }
-
-      if (url.includes("/api/meal-recommendations?groupId=group-1")) {
-        return jsonResponse({
-          recommendations: [
-            {
-              recipeId: "indo-nasi-goreng-telur",
-              name: "Nasi Goreng Telur",
-              cuisine: "indonesia",
-              summary: "Nasi goreng rumahan yang cepat untuk sarapan atau makan malam.",
-              tags: ["sarapan", "goreng", "simple"],
-              bucket: "kurang-sedikit",
-              requiredCount: 3,
-              availableRequiredCount: 2,
-              matchedOptionalCount: 1,
-              expiringSoonCount: 0,
-              nearestExpiryInDays: 14,
-              urgencyReason: "Tinggal tambah Kecap Manis untuk melengkapi bahan utama.",
-              availableIngredients: [
-                {
-                  ingredientId: "nasi",
-                  label: "Beras",
-                  matchedItemNames: ["Beras"],
-                  isRequired: true,
-                  isAvailable: true,
-                  isExpiringSoon: false,
-                  soonestExpiryDays: 30,
-                },
-                {
-                  ingredientId: "telur",
-                  label: "Telur Ayam",
-                  matchedItemNames: ["Telur Ayam"],
-                  isRequired: true,
-                  isAvailable: true,
-                  isExpiringSoon: false,
-                  soonestExpiryDays: 14,
-                },
-              ],
-              missingIngredients: [
-                {
-                  ingredientId: "kecap_manis",
-                  label: "Kecap Manis",
-                  matchedItemNames: [],
-                  isRequired: true,
-                  isAvailable: false,
-                  isExpiringSoon: false,
-                  soonestExpiryDays: null,
-                },
-              ],
-              optionalMatches: [
-                {
-                  ingredientId: "daun_bawang",
-                  label: "Daun Bawang",
-                  matchedItemNames: ["Daun Bawang"],
-                  isRequired: false,
-                  isAvailable: true,
-                  isExpiringSoon: false,
-                  soonestExpiryDays: 7,
-                },
-              ],
-            },
-          ],
-          generatedAt: "2026-03-28T00:00:00.000Z",
-          totalCatalogRecipes: 200,
-        });
-      }
-
-      return jsonResponse({ error: { code: "NOT_FOUND", message: `Unhandled request: ${url}` } }, 404);
-    });
+    vi.spyOn(globalThis, "fetch").mockImplementation(createDashboardFetch());
 
     render(<App />);
 
@@ -218,10 +238,57 @@ describe("app routes", () => {
     await waitFor(() => {
       expect(screen.getAllByText("Susu UHT").length).toBeGreaterThan(0);
     });
+    expect(window.location.pathname).toBe("/app");
     expect(screen.getByText("Rekomendasi Masakan")).toBeInTheDocument();
     expect(screen.getByText("Nasi Goreng Telur")).toBeInTheDocument();
     expect(screen.getByText("Daftar Belanja Restock")).toBeInTheDocument();
     expect(screen.getByText("Telur")).toBeInTheDocument();
+  });
+
+  it("redirects authenticated users away from /auth", async () => {
+    window.history.pushState({}, "", "/auth?tab=register");
+    vi.spyOn(globalThis, "fetch").mockImplementation(createDashboardFetch());
+
+    render(<App />);
+
+    expect(await screen.findByText("Halo, Alice!")).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/app");
+  });
+
+  it("opens the register tab from the homepage CTA", async () => {
+    window.history.pushState({}, "", "/");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({
+        user: null,
+        csrfToken: "csrf-guest",
+      }),
+    );
+
+    render(<App />);
+
+    fireEvent.click((await screen.findAllByRole("link", { name: "Daftar Gratis" }))[0]);
+
+    const registerTab = await screen.findByRole("tab", { name: "Daftar" });
+    expect(registerTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("Nama Lengkap")).toBeInTheDocument();
+  });
+
+  it("opens the login tab from the homepage CTA", async () => {
+    window.history.pushState({}, "", "/");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({
+        user: null,
+        csrfToken: "csrf-guest",
+      }),
+    );
+
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("link", { name: "Masuk Sekarang" }));
+
+    const loginTab = await screen.findByRole("tab", { name: "Masuk" });
+    expect(loginTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("Password")).toBeInTheDocument();
   });
 
   it("renders the full meal recommendations page for an authenticated user", async () => {
@@ -339,7 +406,7 @@ describe("app routes", () => {
     render(<App />);
 
     expect(await screen.findByText("Rekomendasi Masakan")).toBeInTheDocument();
-    expect(screen.getByText("Prioritas Hari Ini")).toBeInTheDocument();
+    expect(await screen.findByText("Prioritas Hari Ini")).toBeInTheDocument();
     expect(screen.getByText("Bisa Dimasak Sekarang")).toBeInTheDocument();
     expect(screen.getByText("Kurang Sedikit Bahan")).toBeInTheDocument();
   });

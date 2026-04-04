@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { GroupProvider } from "@/contexts/GroupContext";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -13,15 +15,6 @@ import Inventory from "./pages/Inventory";
 import Groups from "./pages/Groups";
 import MealRecommendations from "./pages/MealRecommendations";
 import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -35,33 +28,45 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Memuat...</div>;
   }
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/app" replace />;
   return <>{children}</>;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <GroupProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-              <Route path="/meal-recommendations" element={<ProtectedRoute><MealRecommendations /></ProtectedRoute>} />
-              <Route path="/groups" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <MobileBottomNav />
-          </BrowserRouter>
-        </TooltipProvider>
-      </GroupProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <GroupProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/app" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+                <Route path="/meal-recommendations" element={<ProtectedRoute><MealRecommendations /></ProtectedRoute>} />
+                <Route path="/groups" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <MobileBottomNav />
+            </BrowserRouter>
+          </TooltipProvider>
+        </GroupProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
