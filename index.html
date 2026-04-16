@@ -49,6 +49,37 @@
   </head>
 
   <body>
+    <div id="boot-fallback" hidden style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px 48px; color: #1f2937;">
+      <div style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 24px; background: #ffffff; padding: 24px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);">
+        <p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #ea580c;">RumahQu</p>
+        <h1 style="margin: 12px 0 0; font-size: 28px; line-height: 1.25;">Halaman belum berhasil dimuat</h1>
+        <p style="margin: 16px 0 0; font-size: 15px; line-height: 1.7; color: #4b5563;">
+          Beberapa in-app browser seperti Threads, Instagram, atau X kadang membatasi fitur web modern. Jika layar Anda
+          terlihat kosong, buka link ini di browser utama agar RumahQu bisa tampil normal.
+        </p>
+        <div style="display: grid; gap: 12px; margin-top: 24px;">
+          <button
+            type="button"
+            onclick="window.location.reload()"
+            style="appearance: none; border: 0; border-radius: 999px; background: #ea580c; color: #ffffff; padding: 14px 18px; font-size: 15px; font-weight: 700; cursor: pointer;"
+          >
+            Coba muat ulang
+          </button>
+          <a
+            id="boot-fallback-link"
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            style="display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(15, 23, 42, 0.12); border-radius: 999px; background: #fff7ed; color: #9a3412; padding: 14px 18px; font-size: 15px; font-weight: 700; text-decoration: none;"
+          >
+            Buka di browser utama
+          </a>
+        </div>
+        <p style="margin: 16px 0 0; font-size: 12px; line-height: 1.6; color: #6b7280;">
+          Jika tombol kedua masih membuka browser yang sama, gunakan menu titik tiga lalu pilih Open in Browser.
+        </p>
+      </div>
+    </div>
     <div id="root"></div>
     <noscript>
       <main style="font-family: Arial, sans-serif; max-width: 960px; margin: 0 auto; padding: 32px 16px; line-height: 1.6;">
@@ -66,6 +97,64 @@
         </p>
       </main>
     </noscript>
+    <script>
+      (function () {
+        var mountedAttr = "data-rumahqu-mounted";
+        var fallbackId = "boot-fallback";
+        var rootId = "root";
+
+        function isMounted() {
+          return document.documentElement.getAttribute(mountedAttr) === "true";
+        }
+
+        function rootHasContent() {
+          var root = document.getElementById(rootId);
+          return !!(root && root.childNodes.length > 0);
+        }
+
+        function showFallback() {
+          if (isMounted() || rootHasContent()) {
+            return;
+          }
+
+          var fallback = document.getElementById(fallbackId);
+          var link = document.getElementById("boot-fallback-link");
+
+          if (link) {
+            link.setAttribute("href", window.location.href);
+          }
+
+          if (fallback) {
+            fallback.hidden = false;
+          }
+
+          document.body.style.background = "#faf7f2";
+        }
+
+        function clearFallbackWatchdog() {
+          var fallback = document.getElementById(fallbackId);
+
+          if (fallback) {
+            fallback.hidden = true;
+          }
+
+          window.clearTimeout(timeoutId);
+          window.removeEventListener("error", handleBootError);
+          window.removeEventListener("unhandledrejection", handleBootError);
+          window.removeEventListener("rumahqu:mounted", clearFallbackWatchdog);
+        }
+
+        function handleBootError() {
+          window.setTimeout(showFallback, 0);
+        }
+
+        var timeoutId = window.setTimeout(showFallback, 4000);
+
+        window.addEventListener("error", handleBootError);
+        window.addEventListener("unhandledrejection", handleBootError);
+        window.addEventListener("rumahqu:mounted", clearFallbackWatchdog);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
